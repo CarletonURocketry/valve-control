@@ -114,10 +114,8 @@ static inline uint8_t disconnected(void);
  */
 ISR(INT0_vect) {
 
-    /* Make sure that the continuity line actually reads low, with a little
-     * extra delay as treat (to allow transients to settle more) */
-
-    _delay_ms(5);
+    /* Make sure that the continuity line actually reads low, with debouncing as
+     * treat. */
 
     if (disconnected()) {
 
