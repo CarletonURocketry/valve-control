@@ -146,15 +146,6 @@ ISR(INT0_vect) {
  * before the recovery team retrieves it.
  */
 ISR(TIMER0_COMPA_vect) {
-
-    /* Quit early if the compare interrupt flag isn't set, this was a misfire.
-     * Should never happen.
-     */
-
-    if (!(TIFR & _BV(OCF0A))) {
-        return;
-    }
-
     g_time_ms++; /* Increment the time count in ms by one more */
 
     /* If the flight time is depleted, then we have landed */
@@ -206,6 +197,7 @@ int main(void) {
     TCCR0B = _BV(CS02);  /* Divide clock frequency by 256 */
     TCCR0A = _BV(WGM01); /* Put timer in CTC mode (count up from 0 to the value
                             in OCR0A) */
+    TCNT0 = 0;           /* Clear timer counter */
     OCR0A = 31;          /* Set the MAX value for the counter */
 
     /* Clear pending interrupts */
@@ -315,8 +307,10 @@ static inline void stop_timer(void) {
  * This function starts the flight duration timer from 0.
  */
 static inline void start_timer(void) {
-    g_time_ms = 0;        /* Reset time counter */
-    GTCCR &= ~(_BV(TSM)); /* Turn off timer reset assert (timer starts) */
+    g_time_ms = 0; /* Reset program millisecond counter */
+    TCNT0 = 0;     /* Reset timer counter */
+    GTCCR &= ~(_BV(TSM) |
+               _BV(PSR0)); /* Turn off timer reset assert (timer starts) */
     return;
 }
 
