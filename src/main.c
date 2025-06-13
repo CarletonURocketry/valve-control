@@ -30,17 +30,6 @@
 #define STR(x) #x
 #define XSTR(x) STR(x)
 
-/* Pin definitions */
-
-#define XV4_DIR DDB0
-#define XV6_DIR DDB1
-
-#define XV4_OUT PB0
-#define XV6_OUT PB1
-
-#define CONT_DIR DDB2
-#define CONT_IN PB2
-
 /* Logic parameters */
 
 #if F_CPU != 8000000
@@ -75,13 +64,24 @@
 #pragma message "Minimum flight time is " XSTR(MIN_FTIME_MS) " milliseconds"
 #pragma message "Maximum flight time is " XSTR(MAX_FTIME_MS) " milliseconds"
 
-#define DEBOUNCE_DELAY_MS 5
+#define DEBOUNCE_DELAY_MS 10
 
 /* Helpers */
 
 #define solenoids_on() PORTB |= (_BV(XV4_OUT) | _BV(XV6_OUT))
 #define solenoids_off() PORTB &= ~(_BV(XV4_OUT) | _BV(XV6_OUT))
 #define solenoids_are_on ((PORTB & _BV(XV4_OUT)) && (PORTB & _BV(XV6_OUT)))
+
+/* Pin definitions */
+
+#define XV4_DIR DDB0
+#define XV6_DIR DDB1
+
+#define XV4_OUT PB0
+#define XV6_OUT PB1
+
+#define CONT_DIR DDB2
+#define CONT_IN PB2
 
 /* Type definitions */
 
@@ -117,7 +117,7 @@ ISR(INT0_vect) {
     /* Make sure that the continuity line actually reads low, with a little
      * extra delay as treat (to allow transients to settle more) */
 
-    _delay_ms(1);
+    _delay_ms(5);
 
     if (disconnected()) {
 
