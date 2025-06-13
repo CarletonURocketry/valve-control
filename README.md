@@ -11,3 +11,9 @@ It does the following:
 
 This code is written in bare-metal C to be as low-resource as possible, while still making use of the AVR build
 tool-chain conveniences. Should also be more legible than assembly.
+
+## Visualization
+
+This is a visualization of the valve control logic using Finite State Machine (FSM) notation:
+
+![Valve control FSM](./docs/ValveControlFSM.png)
