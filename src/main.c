@@ -121,10 +121,19 @@ ISR(INT0_vect) {
 
         /* We just launched if there was a falling edge detected, which also
          * means the solenoids are no longer ground powered and need to be
-         * turned on from the batteries. */
+         * turned on from the batteries.
+         *
+         * Only perform this logic if we're coming from the grounded state. This
+         * prevents us accidentally returning to the `STATE_LAUNCHED` state
+         * because of a second falling edge interrupt, which might happen if the
+         * continuity wire ends dangling from the rocket touch each other again
+         * by pure chance.
+         */
 
-        g_state = STATE_LAUNCHED;
-        solenoids_on();
+        if (g_state == STATE_GROUNDED) {
+            g_state = STATE_LAUNCHED;
+            solenoids_on();
+        }
     }
 
     /* Clear external INT0 interrupt (this interrupt) */
