@@ -1,0 +1,8 @@
+# Outputs
+*.o
+*.hex
+valves
+
+# Dev resources
+compile_commands.json
+.cache/
