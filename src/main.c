@@ -66,22 +66,24 @@
 
 #define DEBOUNCE_DELAY_MS 10
 
-/* Helpers */
-
-#define solenoids_on() PORTB |= (_BV(XV4_OUT) | _BV(XV6_OUT))
-#define solenoids_off() PORTB &= ~(_BV(XV4_OUT) | _BV(XV6_OUT))
-#define solenoids_are_on ((PORTB & _BV(XV4_OUT)) && (PORTB & _BV(XV6_OUT)))
-
 /* Pin definitions */
 
 #define XV4_DIR DDB0
 #define XV6_DIR DDB1
+#define XV7_DIR DDB3
 
 #define XV4_OUT PB0
 #define XV6_OUT PB1
+#define XV7_OUT PB3
 
 #define CONT_DIR DDB2
 #define CONT_IN PB2
+
+/* Helpers */
+
+#define solenoids_on() PORTB |= (_BV(XV4_OUT) | _BV(XV6_OUT) | _BV(XV7_OUT))
+#define solenoids_off() PORTB &= ~(_BV(XV4_OUT) | _BV(XV6_OUT) | _BV(XV7_OUT))
+#define solenoids_are_on ((PORTB & _BV(XV4_OUT)) && (PORTB & _BV(XV6_OUT)) && (PORTB & _BV(XV7_OUT)))
 
 /* Type definitions */
 
@@ -183,8 +185,9 @@ int main(void) {
 
     /* Set up solenoid valve output pins */
 
-    DDRB &= ~(_BV(XV4_DIR) | _BV(XV6_DIR)); /* Set both as outputs */
-    solenoids_off();                        /* Set both to low */
+    DDRB &= ~(_BV(XV4_DIR) | _BV(XV6_DIR) |
+              _BV(XV7_DIR)); /* Set solenoids as outputs */
+    solenoids_off();         /* Set both to low */
 
     /* Configure the flight timer.
      *

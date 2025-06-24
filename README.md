@@ -1,6 +1,6 @@
 # Valve Control Board
 
-This is the software responsible for maintaining control of the solenoid valves XV-4 and XV-6 during flight.
+This is the software responsible for maintaining control of the solenoid valves XV-4, XV-6 and XV-7 during flight.
 
 It does the following:
 
