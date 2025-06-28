@@ -58,7 +58,7 @@
 
 #define FTIME_MS ((uint32_t)(FTIME) * 1000)
 #define MIN_FTIME_MS (FTIME_MS * 1.024)
-#define MAX_FTIME_MS (FTIME * 1.36)
+#define MAX_FTIME_MS (FTIME_MS * 1.36)
 
 #pragma message "Flight time is set to " XSTR(FTIME_MS) " milliseconds"
 #pragma message "Minimum flight time is " XSTR(MIN_FTIME_MS) " milliseconds"
