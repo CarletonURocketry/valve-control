@@ -70,20 +70,22 @@
 
 #define XV4_DIR DDB0
 #define XV6_DIR DDB1
-#define XV7_DIR DDB3
+#define XV7_DIR DDB2
 
-#define XV4_OUT PB0
+#define XV4_OUT PB2
 #define XV6_OUT PB1
-#define XV7_OUT PB3
+#define XV7_OUT PB0
 
-#define CONT_DIR DDB2
-#define CONT_IN PB2
+#define CONT_DIR DDB3
+#define CONT_IN PB3
+#define CONT_INT_PIN PCINT3
 
 /* Helpers */
 
-#define solenoids_on() PORTB |= (_BV(XV4_OUT) | _BV(XV6_OUT) | _BV(XV7_OUT))
-#define solenoids_off() PORTB &= ~(_BV(XV4_OUT) | _BV(XV6_OUT) | _BV(XV7_OUT))
-#define solenoids_are_on ((PORTB & _BV(XV4_OUT)) && (PORTB & _BV(XV6_OUT)) && (PORTB & _BV(XV7_OUT)))
+#define SOLENOID_MASK (_BV(XV4_OUT) | _BV(XV6_OUT) | _BV(XV7_OUT))
+#define solenoids_on() PORTB |= (SOLENOID_MASK)
+#define solenoids_off() PORTB &= ~(SOLENOID_MASK)
+#define solenoids_are_on ((PORTB & SOLENOID_MASK) == SOLENOID_MASK)
 
 /* Type definitions */
 
@@ -105,16 +107,14 @@ static inline void start_timer(void);
 static inline void stop_timer(void);
 static inline uint8_t disconnected(void);
 
-/* INT0 interrupt vector
- *
- * This is the interrupt vector for detecting a loss of continuity in the
+/* This is the interrupt vector for detecting a loss of continuity in the
  * continuity line. It puts high voltage on the signal lines that drive the
  * MOSFET switches, giving 24V power the solenoid valves. This interrupt handler
- * is called when the continuity line is LOW.
+ * is called when the continuity line experiences a change in voltage.
  *
- * INT0 is the external interrupt request, used to detect external signals.
+ * PCINT0 is used to detect pin changes. The pin with a change must be verified.
  */
-ISR(INT0_vect) {
+ISR(PCINT0_vect) {
 
     /* Make sure that the continuity line actually reads low, with debouncing as
      * treat. */
@@ -138,9 +138,7 @@ ISR(INT0_vect) {
         }
     }
 
-    /* Clear external INT0 interrupt (this interrupt) */
-
-    GIFR |= _BV(INTF0);
+    /* NOTE: PCIE interrupt flag is cleared when this ISR returns */
 }
 
 /* Timer interrupt vector
@@ -214,17 +212,14 @@ int main(void) {
 
     /* Clear pending interrupts */
 
-    GIFR |= _BV(INTF0); /* Clears external INT0 interrupt */
-
-    /* Configure continuity line interrupt as falling edge interrupt */
-
-    MCUCR |= (_BV(ISC01) | _BV(ISC00));
+    GIFR |= _BV(PCIF); /* Clears external PCIE interrupts */
 
     /* Enable interrupts for continuity detect and timer */
 
-    TIMSK |= _BV(OCIE0A); /* Enables timer 0 compare A interrupt */
-    GIMSK |= _BV(INT0);   /* Enables INT0 interrupt */
-    sei();                /* Enable interrupts globally (must be last step) */
+    TIMSK |= _BV(OCIE0A);       /* Enables timer 0 compare A interrupt */
+    PCMSK |= _BV(CONT_INT_PIN); /* Enables PCIE interrupt for continuity pin */
+    GIMSK |= _BV(PCIE);         /* Enables PCIE interrupt */
+    sei(); /* Enable interrupts globally (must be last step) */
 
     /* Loop forever, let interrupt routines handle state transitions  */
 
@@ -249,7 +244,7 @@ int main(void) {
              * we can still detect that we've launched and can turn the
              * solenoids on again.
              *
-             * The INT0 interrupt is still important to have, since it will have
+             * The PCIE interrupt is still important to have, since it will have
              * a (marginally) quicker response time to a disconnect. This is
              * just an extra precaution.
              */
